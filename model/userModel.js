@@ -1,5 +1,5 @@
 const mongoose = require('mongoose'); 
-const bcrypt = require('bcrypt'); // for password hashing
+const bcrypt = require('bcryptjs'); // for password hashing
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema({
     firstname:{
