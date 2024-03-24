@@ -16,7 +16,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}))
 //calling an api using authRouter for a new user
 app.use('/api/user', authRouter)
-
 app.use(notFound);
 app.use(errorHandler);
 

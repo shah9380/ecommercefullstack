@@ -1,7 +1,7 @@
 const expressAsyncHandler = require('express-async-handler');
 const User = require('../model/userModel');
 
-
+//controller logic for creating a user
 const createUser = expressAsyncHandler(
     async (req, res)=>{
         //getting the user typed mail
@@ -21,4 +21,19 @@ const createUser = expressAsyncHandler(
     }
     
 )
-module.exports = { createUser };
+
+//controller for login the user
+const loginUser = expressAsyncHandler(
+    async (req, res)=>{
+        const {email, password} = req.body;
+        //check if user exist or not 
+        const findUser = await User.findOne({email});
+        if(findUser && await findUser.isPasswordMatched(password)){
+            res.json(findUser);
+        }else{
+            throw new Error("Invalid Credendials")
+        }
+    }
+)
+
+module.exports = { createUser, loginUser };

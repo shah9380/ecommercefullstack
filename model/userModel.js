@@ -1,5 +1,5 @@
-const mongoose = require('mongoose'); // Erase if already required
-
+const mongoose = require('mongoose'); 
+const bcrypt = require('bcrypt'); // for password hashing
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema({
     firstname:{
@@ -26,5 +26,15 @@ var userSchema = new mongoose.Schema({
     },
 });
 
+//password is encrypted before sending to the database
+userSchema.pre('save', async function(next){
+    const salt = bcrypt.genSaltSync(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    // Store hash in your password DB.
+})
+
+userSchema.methods.isPasswordMatched = async function(enteredPassword){
+    return await bcrypt.compare(enteredPassword, this.password);
+};
 //Export the model
 module.exports = mongoose.model('Users', userSchema);
