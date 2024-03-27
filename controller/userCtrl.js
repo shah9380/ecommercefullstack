@@ -1,6 +1,7 @@
 const expressAsyncHandler = require('express-async-handler');
 const User = require('../model/userModel');
 const { generateToken } = require('../config/jwtToken');
+const validateMongoDbId = require('../utils/validateMongoDbId')
 
 //controller logic for creating a user
 const createUser = expressAsyncHandler(
@@ -48,9 +49,10 @@ const loginUser = expressAsyncHandler(
 //controller logic for updating a user
 const updateUser = expressAsyncHandler(
     async (req, res)=>{
-        const { id } = req.params;
+        const { _id } = req.user;
+        validateMongoDbId(_id);
         try {
-            const updateUser = await User.findByIdAndUpdate(id, {
+            const updateUser = await User.findByIdAndUpdate(_id, {
                 firstname: req?.body?.firstname,
                 lastname: req?.body?.lastname,
                 email: req?.body?.mobile,
@@ -69,6 +71,7 @@ const updateUser = expressAsyncHandler(
 const getUser = expressAsyncHandler(
     async (req, res)=>{
         const { id } = req.params;
+        validateMongoDbId(id);
         try {
             const user = await User.findById(id);
             res.json(user);
@@ -81,8 +84,10 @@ const getUser = expressAsyncHandler(
 //deleting a user using it's ID
 const deleteUser = expressAsyncHandler(
     async (req, res)=>{
+        const {id} = req.params;
+        validateMongoDbId(id);
         try {
-            const {id} = req.params;
+            
             const user = await User.findByIdAndDelete(id);
             res.json({
                 deletedUser: user

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose'); 
 const bcrypt = require('bcryptjs'); // for password hashing
+const { ObjectId } = mongoose.Types; // Import ObjectId from mongoose.Types
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema({
     firstname:{
@@ -27,7 +28,16 @@ var userSchema = new mongoose.Schema({
     role:{
         type:String,
         default: "user"
-    }
+    },
+    cart:{
+        type: Array,
+        default: []
+    },
+    wishlist: [{type: mongoose.Schema.Types.ObjectId, ref: "Product"}],
+    address:[{type: mongoose.Schema.Types.ObjectId, ref: "Address"}],
+},
+{
+    timestamps: true,
 });
 
 //password is encrypted before sending to the database
