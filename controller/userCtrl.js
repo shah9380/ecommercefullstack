@@ -1,7 +1,9 @@
 const expressAsyncHandler = require('express-async-handler');
 const User = require('../model/userModel');
 const { generateToken } = require('../config/jwtToken');
-const validateMongoDbId = require('../utils/validateMongoDbId')
+const validateMongoDbId = require('../utils/validateMongoDbId');
+const { generateRefreshToken } = require('../config/refreshToken');
+const jwt = require('jsonwebtoken');
 
 //controller logic for creating a user
 const createUser = expressAsyncHandler(
@@ -31,6 +33,16 @@ const loginUser = expressAsyncHandler(
         //check if user exist or not 
         const findUser = await User.findOne({email});
         if(findUser && await findUser.isPasswordMatched(password)){
+            const refreshToken = await generateRefreshToken(findUser?._id);
+            const updateUser = await User.findOneAndUpdate(findUser?._id, {
+                refreshToken: refreshToken,
+            }, {
+                new: true
+            });
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                maxAge: 72 * 60 * 60 * 1000,
+            })
             res.json(
                 {
                     _id: findUser?._id,
@@ -43,6 +55,25 @@ const loginUser = expressAsyncHandler(
         }else{
             throw new Error("Invalid Credendials")
         }
+    }
+)
+
+//handle the refresh token
+const handleRefreshToken = expressAsyncHandler(
+    async (req, res)=>{
+        const cookie = req.cookies;
+        
+        if(!cookie?.refreshToken) throw new Error("No refresh token in cookies");
+        const refreshToken = cookie.refreshToken;
+        const user = await User.findOne({refreshToken})
+        if(!user) throw new Error(" No refresh token matched with any user in DB");
+        jwt.verify(refreshToken, process.env.JWT_SECRETKEY, (err, decoded)=>{
+            if(err || user.id !== decoded.id){
+                throw new Error('There is something wrong with refresh token')
+            }
+            const accessToken = generateToken(user?._id);
+            res.json({ accessToken })
+        });
     }
 )
 
@@ -113,4 +144,4 @@ const getAllUsers = expressAsyncHandler(
 )
 
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser};
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken};
