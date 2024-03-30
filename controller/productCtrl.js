@@ -78,11 +78,20 @@ const getAllProducts = expressAsyncHandler(
             console.log(queryObj);
             let queryStr = JSON.stringify(queryObj);
             queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match)=> `$${match}`);
-            const query = Product.find(JSON.parse(queryStr));
-            const allProducts = await query;
-            res.json(allProducts)
+            let query = Product.find(JSON.parse(queryStr));
 
             //sorting of products
+            if(req.query.sort){
+                const sortBy =  req.query.sort.split(',').join(" ");
+                query = query.sort(sortBy);
+            }else{
+                //error handling
+               query = query.sort("-createdAt");
+            }
+
+            //limiting the 
+            const allProducts = await query;
+            res.json(allProducts)
         } catch (error) {
             throw new Error('not able to give all the products')
         }
