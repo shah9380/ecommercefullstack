@@ -432,6 +432,25 @@ const getOrders = expressAsyncHandler(
     }
 )
 
+//updating the order status
+
+const updateOrderStatus = expressAsyncHandler(
+    async(req, res)=>{
+        const {status} = req.body;
+        const {id} = req.params;
+        validateMongoDbId(id);
+        try {
+            const updateOrderStatus = await Order.findByIdAndUpdate(id,{orderStatus: status, paymentIntent:{
+                // ...paymentIntent,
+                status: status,
+                // some changes needs to be made in this
+            }}, {new : true})
+            res.json(updateOrderStatus);
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
 
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart, emptyCart, createOrder, getOrders};
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart, emptyCart, createOrder, getOrders, updateOrderStatus};
