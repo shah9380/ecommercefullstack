@@ -5,6 +5,7 @@ const validateMongoDbId = require('../utils/validateMongoDbId');
 const { generateRefreshToken } = require('../config/refreshToken');
 const jwt = require('jsonwebtoken');
 const { sendaMail } = require('./emailCtrl');
+const crypto = require('crypto')
 
 //controller logic for creating a user
 const createUser = expressAsyncHandler(
@@ -217,4 +218,31 @@ const forgetPasswordToken = expressAsyncHandler(
     }
 )
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken};
+//reset password api 
+const resetPassword =  expressAsyncHandler(
+    async (req, res)=>{
+        const {password} = req.body;
+        const {token} = req.params;
+        //sha256 is just a parrameter of crypto
+        const hashedToken = crypto.createHash('sha256').update(token).digest("hex");
+        try {
+            const user  = await User.findOne({
+                passwordResetToken: hashedToken,
+                passwordResetExpires: {$gt: Date.now()}
+            })
+            if(!user){
+                throw new Error("token expired please try again later")
+            }
+            user.password = password;
+            //after once resetting I don't want it to reset it back
+            user.passwordResetToken = undefined;
+            user.passwordResetExpires = undefined;
+            await user.save();
+            res.json(user);
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+)
+
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword};
