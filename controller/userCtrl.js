@@ -282,7 +282,8 @@ const getWishlist = expressAsyncHandler(
     async(req, res)=>{
         const {_id} = req.user;
         try {
-            const findUser =  await User.findById(_id);
+            const findUser =  await User.findById(_id).populate('wishlist');
+            //populate means that we will get the whole product by just id we had passed during wishlist generation
             res.json(findUser)
         } catch (error) {
             throw new Error(error)
