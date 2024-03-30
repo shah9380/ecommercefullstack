@@ -349,4 +349,20 @@ const getuserCart = expressAsyncHandler(
     }
 )
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart};
+//Delete or empty for the cart
+const emptyCart = expressAsyncHandler(
+    async(req, res)=>{
+        const {_id} = req.user;
+        console.log(req.user);
+        validateMongoDbId(_id);
+        try {
+            const user = await User.findById(_id);
+            const cart = await Cart.findOneAndDelete({cartOwner: user._id})
+            res.json(cart);
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
+
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart, emptyCart};
