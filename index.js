@@ -9,6 +9,8 @@ const authRouter = require('./routes/authRoutes');
 const productRouter = require('./routes/productRoute')
 const blogRoutes = require('./routes/blogRoutes')
 const categoryRoutes = require('./routes/categoryRoutes')
+const brandRoutes = require('./routes/brandRoutes')
+
 const bodyParser = require('body-parser');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 const cookieParser = require('cookie-parser');
@@ -33,6 +35,8 @@ app.use('/api/product',productRouter)
 app.use('/api/blogs',blogRoutes)
 //category api calling for CRUD 
 app.use('/api/category',categoryRoutes)
+//brand api calling for CRUD 
+app.use('/api/brand',brandRoutes)
 
 app.use(notFound);
 app.use(errorHandler);
