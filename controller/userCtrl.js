@@ -1,5 +1,7 @@
 const expressAsyncHandler = require('express-async-handler');
 const User = require('../model/userModel');
+const Product = require('../model/productModel');
+const Cart = require('../model/cartModel');
 const { generateToken } = require('../config/jwtToken');
 const validateMongoDbId = require('../utils/validateMongoDbId');
 const { generateRefreshToken } = require('../config/refreshToken');
@@ -278,6 +280,8 @@ const resetPassword =  expressAsyncHandler(
     }
 )
 
+//wishlist fetching
+
 const getWishlist = expressAsyncHandler(
     async(req, res)=>{
         const {_id} = req.user;
@@ -291,4 +295,58 @@ const getWishlist = expressAsyncHandler(
     }
 )
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist};
+
+//cart checking and creating
+const userCart =  expressAsyncHandler(
+    async(req, res)=>{
+        const {cart} = req.body;
+        const {_id} = req.user;
+        validateMongoDbId(_id);
+        try {
+            let products = []
+            const user = await User.findById(_id)
+            //check if user already having product in cart which I want to add
+            const checkExistCart = await Cart.findOne({orderby: user._id});
+            if(checkExistCart){
+                checkExistCart.remove();
+            }
+            for(let i=0;i<cart.length;i++){
+                let object ={};
+                object.product = cart[i]._id;
+                object.count = cart[i].count;
+                object.color = cart[i].color;
+                let getPrice = await Product.findById(cart[i]._id).select("price").exec();
+                object.price = getPrice.price;
+                products.push(object);
+            }
+            let cartTotal = 0;
+            for(let i=0;i<products.length;i++){
+                cartTotal = cartTotal + products[i].price * products[i].count;
+            }
+            let newCart = await new Cart({
+                products,
+                cartTotal,
+                cartOwner: user?._id,  
+            }).save();
+            res.json(newCart)
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
+
+// fetching the cart
+const getuserCart = expressAsyncHandler(
+    async(req, res)=>{
+        const {_id} = req.user;
+        validateMongoDbId(_id);
+        try {
+            const cart = await Cart.findOne({cartOwner: _id}).populate("products.product", "_id title price totalAfterDiscount")
+            res.json(cart);
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
+
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart};
