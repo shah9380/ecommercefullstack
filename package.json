@@ -19,7 +19,8 @@
     "express": "^4.19.1",
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.2.3"
+    "mongoose": "^8.2.3",
+    "morgan": "^1.10.0"
   },
   "engines": {
     "node": ">=18.18.0 <21.4.0"
