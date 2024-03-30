@@ -36,18 +36,13 @@ const updateaProduct = expressAsyncHandler(
     }
 )
 //delete a product
-const updateaProduct = expressAsyncHandler(
+const deleteaProduct = expressAsyncHandler(
   
     async (req, res)=>{
         const{id} = req.params;
         try {
-            if(req.body.title){
-                req.body.slug = slugify(req.body.title);
-            }
-            const updatedProduct = await Product.findByIdAndUpdate(id, req.body,{
-                new : true
-            })
-            res.json(updatedProduct)
+            const deletedProduct = await Product.findByIdAndDelete(id);
+            res.json(deletedProduct);
         } catch (error) {
             throw new Error(error)
         }
@@ -81,4 +76,4 @@ const getAllProducts = expressAsyncHandler(
         }
     }
 )
-module.exports = {createProduct, getaProduct, getAllProducts, updateaProduct}
+module.exports = {createProduct, getaProduct, getAllProducts, updateaProduct, deleteaProduct}
