@@ -60,6 +60,39 @@ const loginUser = expressAsyncHandler(
     }
 )
 
+//admin login 
+const loginAdmin = expressAsyncHandler(
+    async (req, res)=>{
+        const {email, password} = req.body;
+        //check if user exist or not 
+        const findAdmin = await User.findOne({email});
+        if(findAdmin.role.toLowerCase() !== "admin") throw new Error("you are not authorized user for this")
+        if(findAdmin && await findAdmin.isPasswordMatched(password)){
+            const refreshToken = await generateRefreshToken(findAdmin?._id);
+            const updateAdmin = await User.findOneAndUpdate(findAdmin?._id, {
+                refreshToken: refreshToken,
+            }, {
+                new: true
+            });
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                maxAge: 72 * 60 * 60 * 1000,
+            })
+            res.json(
+                {
+                    _id: findAdmin?._id,
+                    firstname: findAdmin?.firstname,
+                    lastname: findAdmin?.lastname,
+                    email: findAdmin?.email,
+                    token: generateToken(findAdmin?._id)
+                }
+            );
+        }else{
+            throw new Error("Invalid Credendials")
+        }
+    }
+)
+
 //handle the refresh token
 const handleRefreshToken = expressAsyncHandler(
     async (req, res)=>{
@@ -245,4 +278,16 @@ const resetPassword =  expressAsyncHandler(
     }
 )
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword};
+const getWishlist = expressAsyncHandler(
+    async(req, res)=>{
+        const {_id} = req.user;
+        try {
+            const findUser =  await User.findById(_id);
+            res.json(findUser)
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
+
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist};
