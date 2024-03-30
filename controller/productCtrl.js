@@ -89,7 +89,27 @@ const getAllProducts = expressAsyncHandler(
                query = query.sort("-createdAt");
             }
 
-            //limiting the 
+            //limiting the fields
+            if(req.query.fields){
+                const fields = req.query.fields.split(",").join(" ");
+                query = query.select(fields);
+            }else{
+                //if we don,t want to show mongoose __v
+                query = query.select('-__v')
+            }
+
+            //pagination
+            const page = req.query.page;
+            const limit = req.query.limit;
+            //let limit is 3
+            //if page is 2 we are skipping the previous 3 products if page is 3 we will skip 2*3 means 6 products this means 2 pages skipped
+            const skip = (page -1)* limit;
+            query = query.skip(skip).limit(limit);
+            if(req.query.page){
+                const productCount = await Product.countDocuments();
+                if(skip >= productCount) throw new Error("This page does not exist");
+            }
+
             const allProducts = await query;
             res.json(allProducts)
         } catch (error) {
