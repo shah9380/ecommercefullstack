@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 4000;
 
 const authRouter = require('./routes/authRoutes');
 const productRouter = require('./routes/productRoute')
+const blogRoutes = require('./routes/blogRoutes')
 const bodyParser = require('body-parser');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 const cookieParser = require('cookie-parser');
@@ -27,7 +28,8 @@ app.use(cookieParser())
 app.use('/api/user', authRouter)
 //calling an api for using productRouter for CRUD of products
 app.use('/api/product',productRouter)
-
+//calling an api for CRUD on blog
+app.use('/api/blogs',blogRoutes)
 
 app.use(notFound);
 app.use(errorHandler);

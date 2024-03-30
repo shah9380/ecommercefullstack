@@ -11,6 +11,7 @@ const sendaMail = expressAsyncHandler(
             port: 587,
             secure: false, // Use `true` for port 465, `false` for all other ports
             auth: {
+                //used google app password generation method for creating 12 digit password
               user: process.env.MAIL_ID,
               pass: process.env.MPASS,
             },
