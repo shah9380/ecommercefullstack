@@ -168,5 +168,24 @@ const getAllUsers = expressAsyncHandler(
     }
 )
 
+const updatePassword = expressAsyncHandler(
+    async(req, res)=>{
+        const {_id} =req.user;
+        const {password} = req.body;
+        try {
+            validateMongoDbId(_id);
+            const user = await User.findById(_id);
+            if(password){
+                    user.password = password;
+                    const updatedPassword = await user.save();
+                    res.json(updatedPassword);
+            }else{
+                res.json(user);
+            }
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout};
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword};
