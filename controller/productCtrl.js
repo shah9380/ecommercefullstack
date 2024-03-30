@@ -18,6 +18,41 @@ const createProduct = expressAsyncHandler(
 )
 
 //update a product
+const updateaProduct = expressAsyncHandler(
+  
+    async (req, res)=>{
+        const{id} = req.params;
+        try {
+            if(req.body.title){
+                req.body.slug = slugify(req.body.title);
+            }
+            const updatedProduct = await Product.findByIdAndUpdate(id, req.body,{
+                new : true
+            })
+            res.json(updatedProduct)
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
+//delete a product
+const updateaProduct = expressAsyncHandler(
+  
+    async (req, res)=>{
+        const{id} = req.params;
+        try {
+            if(req.body.title){
+                req.body.slug = slugify(req.body.title);
+            }
+            const updatedProduct = await Product.findByIdAndUpdate(id, req.body,{
+                new : true
+            })
+            res.json(updatedProduct)
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
 
 
 //getting a product
@@ -46,4 +81,4 @@ const getAllProducts = expressAsyncHandler(
         }
     }
 )
-module.exports = {createProduct, getaProduct, getAllProducts}
+module.exports = {createProduct, getaProduct, getAllProducts, updateaProduct}
