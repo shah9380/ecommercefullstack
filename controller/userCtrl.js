@@ -416,6 +416,22 @@ const createOrder = expressAsyncHandler(
             throw new Error(error)
         }
     }
+);
+
+//fetching all the orders
+const getOrders = expressAsyncHandler(
+    async(req, res)=>{
+        const {_id} = req.user;
+        validateMongoDbId(_id)
+        try {
+            const userOrders = await Order.find({orderBy: _id}).populate("products.product").exec()
+            res.json(userOrders);
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
 )
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart, emptyCart, createOrder};
+
+
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart, emptyCart, createOrder, getOrders};
