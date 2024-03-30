@@ -4,6 +4,7 @@ const { generateToken } = require('../config/jwtToken');
 const validateMongoDbId = require('../utils/validateMongoDbId');
 const { generateRefreshToken } = require('../config/refreshToken');
 const jwt = require('jsonwebtoken');
+const { sendaMail } = require('./emailCtrl');
 
 //controller logic for creating a user
 const createUser = expressAsyncHandler(
@@ -111,8 +112,8 @@ const updateUser = expressAsyncHandler(
             const updateUser = await User.findByIdAndUpdate(_id, {
                 firstname: req?.body?.firstname,
                 lastname: req?.body?.lastname,
-                email: req?.body?.mobile,
-                mobile: req?.body?.email
+                email: req?.body?.email,
+                mobile: req?.body?.mobile
             },{
                 new: true,
             });
@@ -188,4 +189,32 @@ const updatePassword = expressAsyncHandler(
     }
 )
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword};
+//forgot password token generation with mail sending
+const forgetPasswordToken = expressAsyncHandler(
+    async(req, res)=>{
+        const {email} =  req.body;
+        const user = await User.findOne({email});
+        if(!user){
+            throw new Error("User not found")
+        }
+        try {
+            const token = await user.createPasswordResetToken();
+            // we are saving it becuse in the createPasswordResetToken method we are geeratiing timestamps
+            await user.save();
+            const resetURL = `Hi, Please follwow this link for resetting your passsword. this is valid till 10 minutes from now. <a href='http:localhost:5000/api/user/reset-password/${token}'>Click Here</a>`;
+            const data = {
+                to: email,
+                text:"Hey user",
+                subject: "Forgot password link",
+                htm:resetURL,
+            }
+            //sending a mail
+           sendaMail(data)
+           res.json(token);
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
+
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken};
