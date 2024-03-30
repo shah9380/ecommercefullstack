@@ -10,14 +10,17 @@ const productRouter = require('./routes/productRoute')
 const bodyParser = require('body-parser');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
 
 //connecting to Database
 dbConnect();
 
 
+app.use(morgan('dev'))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(cookieParser())
+
 
 
 //calling an api using authRouter for a new user
