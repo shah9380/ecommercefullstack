@@ -2,6 +2,7 @@ const expressAsyncHandler = require('express-async-handler');
 const User = require('../model/userModel');
 const Product = require('../model/productModel');
 const Cart = require('../model/cartModel');
+const Order = require('../model/orderModel');
 const { generateToken } = require('../config/jwtToken');
 const validateMongoDbId = require('../utils/validateMongoDbId');
 const { generateRefreshToken } = require('../config/refreshToken');
@@ -360,6 +361,30 @@ const emptyCart = expressAsyncHandler(
             const cart = await Cart.findOneAndDelete({cartOwner: user._id})
             res.json(cart);
         } catch (error) {
+            throw new Error(error)
+        }
+    }
+)
+
+//creating the order functionality
+
+const ceateOrder = expressAsyncHandler(
+    async(req, res)=>{
+        const {COD} = req.body;
+        const {_id} = req.user;
+        validateMongoDbId(_id);
+        
+        try {
+            if(!COD) throw new Error("cash order creation failed");
+            const user = await User.findById(_id);
+            let userCart = await Cart.findOne({cartOwner: user._id});
+            let finalAmount = 0;
+            finalAmount = userCart.cartTotal * 100;
+            let newOrder = await new Order({
+                products: userCart.products,
+                paymentIntent: 
+            })
+        } catch(error){
             throw new Error(error)
         }
     }
