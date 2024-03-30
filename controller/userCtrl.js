@@ -1,4 +1,8 @@
 const expressAsyncHandler = require('express-async-handler');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const uniqid = require('uniqid');
+
 const User = require('../model/userModel');
 const Product = require('../model/productModel');
 const Cart = require('../model/cartModel');
@@ -6,9 +10,9 @@ const Order = require('../model/orderModel');
 const { generateToken } = require('../config/jwtToken');
 const validateMongoDbId = require('../utils/validateMongoDbId');
 const { generateRefreshToken } = require('../config/refreshToken');
-const jwt = require('jsonwebtoken');
+
 const { sendaMail } = require('./emailCtrl');
-const crypto = require('crypto')
+
 
 //controller logic for creating a user
 const createUser = expressAsyncHandler(
@@ -368,7 +372,7 @@ const emptyCart = expressAsyncHandler(
 
 //creating the order functionality
 
-const ceateOrder = expressAsyncHandler(
+const createOrder = expressAsyncHandler(
     async(req, res)=>{
         const {COD} = req.body;
         const {_id} = req.user;
@@ -379,15 +383,39 @@ const ceateOrder = expressAsyncHandler(
             const user = await User.findById(_id);
             let userCart = await Cart.findOne({cartOwner: user._id});
             let finalAmount = 0;
-            finalAmount = userCart.cartTotal * 100;
+            finalAmount = userCart.cartTotal;
             let newOrder = await new Order({
                 products: userCart.products,
-                paymentIntent: 
-            })
+                paymentIntent: {
+                    id: uniqid(),
+                    method: "COD",
+                    amount: finalAmount,
+                    status: "cash on delivery",
+                    created: Date.now(),
+                    currency: "usd",
+                },
+                orderBy: user._id,
+                orderStatus: "Cash On Delivery",
+            }).save();
+            //after order we need to update the available quantity and sold quantity
+            //dynamic find for bulk updating
+            //bulk updating API
+            let update = userCart.products.map((item)=>{
+                return {
+                    updateOne:{
+                        filter: {_id: item.product._id},
+                        //updating the quantity and sold quantity after order api called
+                        update: {$inc: {quantity: -item.count, sold: +item.count}}
+                    }
+                }
+            });
+            //updating in bulk we have bulkwrite method
+            const updated = await Product.bulkWrite(update,{})
+            res.json({message: "success", newOrder})
         } catch(error){
             throw new Error(error)
         }
     }
 )
 
-module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart, emptyCart};
+module.exports = { createUser, loginUser, getAllUsers, updateUser, getUser, deleteUser, handleRefreshToken, logout, updatePassword, forgetPasswordToken, resetPassword, loginAdmin, getWishlist, userCart, getuserCart, emptyCart, createOrder};
